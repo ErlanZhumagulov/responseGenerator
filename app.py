@@ -42,6 +42,8 @@ except Exception as e:
 
 # Функция для обработки сообщений из RabbitMQ
 def callback(ch, method, properties, body):
+    print(" Что-то пришло...  ", flush=True)
+
     try:
         # Получаем данные из сообщения
         data = json.loads(body.decode('utf-8'))
