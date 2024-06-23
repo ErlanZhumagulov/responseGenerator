@@ -16,7 +16,7 @@ mongo_uri = "mongodb://mongodb:27017/chat_database"
 
 try:
     # Подключение к RabbitMQ
-    print("Connecting to RabbitMQ...")
+    print("Connecting to RabbitMQ...", flush=True)
     rabbitmq_connection = pika.BlockingConnection(pika.URLParameters(rabbitmq_uri))
     rabbitmq_channel = rabbitmq_connection.channel()
 
@@ -28,15 +28,15 @@ try:
     rabbitmq_channel.queue_bind(exchange=exchange_name, queue=queue_name, routing_key='response-generator-key')
 
     # Подключение к MongoDB
-    print("Connecting to MongoDB...")
+    print("Connecting to MongoDB...", flush=True)
     mongo_client = MongoClient(mongo_uri)
     db = mongo_client.get_database()
     chats_collection = db.get_collection('chats')
 
-    print(' [*] Waiting for messages. To exit press CTRL+C')
+    print(' [*] Waiting for messages. To exit press CTRL+C', flush=True)
 
 except Exception as e:
-    print(f"Error during initialization: {str(e)}")
+    print(f"Error during initialization: {str(e)}", flush=True)
     sys.exit(1)
 
 
@@ -65,7 +65,7 @@ def callback(ch, method, properties, body):
 
             # Добавляем сгенерированный ответ в чат в MongoDB
             previous_messages.append({"role": "assistant", "content": response.choices[0].message.content})
-            print(f"Generated response: {response.choices[0].message.content}")
+            print(f"Generated response: {response.choices[0].message.content}", flush=True)
 
             chats_collection.update_one(
                 {'_id': ObjectId(user_chat_id)},
@@ -80,10 +80,10 @@ def callback(ch, method, properties, body):
             )
 
         else:
-            print(f"Chat with id {user_chat_id} not found in MongoDB")
+            print(f"Chat with id {user_chat_id} not found in MongoDB", flush=True)
 
     except Exception as e:
-        print(f"Error in callback function: {str(e)}")
+        print(f"Error in callback function: {str(e)}", flush=True)
 
 
 # Начинаем прослушивать очередь сообщений в RabbitMQ
@@ -93,7 +93,7 @@ try:
     rabbitmq_channel.start_consuming()
 
 except KeyboardInterrupt:
-    print("Exiting...")
+    print("Exiting...", flush=True)
     rabbitmq_channel.stop_consuming()
 
 finally:
