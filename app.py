@@ -90,8 +90,8 @@ def callback(ch, method, properties, body):
 
 # Начинаем прослушивать очередь сообщений в RabbitMQ
 try:
-    rabbitmq_channel.queue_declare(queue='user_messages_queue', durable=True)
-    rabbitmq_channel.basic_consume(queue='user_messages_queue', on_message_callback=callback, auto_ack=True)
+    rabbitmq_channel.queue_declare(queue='response_generator_queue', durable=True)
+    rabbitmq_channel.basic_consume(queue='response_generator_queue ', on_message_callback=callback, auto_ack=True)
     rabbitmq_channel.start_consuming()
 
 except KeyboardInterrupt:
