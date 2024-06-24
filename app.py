@@ -33,6 +33,17 @@ try:
     db = mongo_client.get_database()
     chats_collection = db.get_collection('chats')
 
+    print(chats_collection, flush=True)
+    print("---------------------------------------------------------", flush=True )
+
+    documents = chats_collection.find()
+
+    # Вывод всех документов
+    for document in documents:
+        print(document, flush=True)
+
+
+
     print(' [*] Waiting for messages. To exit press CTRL+C', flush=True)
 
 except Exception as e:
@@ -50,6 +61,7 @@ def callback(ch, method, properties, body):
         user_chat_id = data['userChatId']
         message_text = data['messageText']
 
+        print(chats_collection.find())
         # Находим соответствующий чат в MongoDB
         chat_data = chats_collection.find_one({'_id': ObjectId(user_chat_id)})
         if chat_data:
