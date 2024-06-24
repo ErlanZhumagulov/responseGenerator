@@ -100,7 +100,7 @@ def callback(ch, method, properties, body):
             rabbitmq_channel.basic_publish(
                 exchange='myDirectExchange',
                 routing_key='boss-key',
-                body=json.dumps({'userChatId': user_chat_id, 'generatedResponse': response.choices[0].message.content})
+                body=json.dumps({'userChatId': user_chat_id, 'messageText': response.choices[0].message.content})
             )
 
         else:
