@@ -61,29 +61,39 @@ def callback(ch, method, properties, body):
         user_chat_id = data['userChatId']
         message_text = data['messageText']
 
-        print(chats_collection.find())
-        # Находим соответствующий чат в MongoDB
-        chat_data = chats_collection.find_one({'_id': ObjectId(user_chat_id)})
-        if chat_data:
-            # Достаем все сообщения из чата
-            previous_messages = chat_data.get('words', [])
+        document = chats_collection.find_one({'_id': user_chat_id})
+        words = document.get('words', [])
 
-            previous_messages.append({"role": "user", "content": message_text})
+        if document:
+            # Новая строка для добавления в words
+            new_word = {'role': 'user', 'content': message_text}  # Замените на необходимую строку
+
+            # Добавление новой строки в words
+            chats_collection.update_one(
+                {'_id': user_chat_id},
+                {'$push': {'words': new_word}}
+            )
+            words.append(new_word)
+
+            # Проверка обновленного документа
+            updated_document = chats_collection.find_one({'_id': user_chat_id})
+            print(updated_document)
+
 
             # Генерируем ответ с помощью GPT-3.5
             client = Client()
             response = client.chat.completions.create(
                 model=g4f.models.gpt_35_turbo,
-                messages=previous_messages,
+                messages=words,
             )
 
             # Добавляем сгенерированный ответ в чат в MongoDB
-            previous_messages.append({"role": "assistant", "content": response.choices[0].message.content})
+            words.append({"role": "assistant", "content": response.choices[0].message.content})
             print(f"Generated response: {response.choices[0].message.content}", flush=True)
 
             chats_collection.update_one(
-                {'_id': ObjectId(user_chat_id)},
-                {'$push': {'words': previous_messages}}
+                {'_id': user_chat_id},
+                {'$push': {'words': {"role": "assistant", "content": response.choices[0].message.content}}}
             )
 
             # Отправляем сгенерированный ответ на другой сервис через RabbitMQ
@@ -94,10 +104,12 @@ def callback(ch, method, properties, body):
             )
 
         else:
-            print(f"Chat with id {user_chat_id} not found in MongoDB", flush=True)
+            print(f'Документ с _id {user_chat_id} не найден.')
 
     except Exception as e:
         print(f"Error in callback function: {str(e)}", flush=True)
+
+
 
 
 # Начинаем прослушивать очередь сообщений в RabbitMQ
